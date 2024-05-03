@@ -1,6 +1,5 @@
 ## Started overall formatting here. We may want to separate functions into different files so it is easier to work on
 
-
 ### Imports
 import numpy as np
 import matplotlib.pyplot as plt
@@ -44,51 +43,82 @@ def trapezoidal_Integral(r,u):
 
 ## This function will contain bulk of solving code
 @njit
-def delta_step(delta, r, dt):
-    # Calculate delta at next time step
+def delta_step(delta, b, dt, V0):
+    g = 9.81
+    nu = 0.001
 
     N = len(delta)
+    xi = np.linspace(0, 1, N)
+    dxi = xi[1]-xi[0]
 
+    # Calculate delta(xi) at next time step
+    delta_new = np.zeros(N)
 
+    # Inner Points
+    for i in range(1,N-1):
+        delta_new[i] = delta[i] + g*dt/3/nu*(delta[i]**3/b**2 * ((delta[i-1]-2*delta[i]+delta[i+1])/dxi**2 + 1/xi[i]*(delta[i+1]-delta[i-1])/2/dxi) + 3*delta[i]**2/b**2 * (delta[i+1]-delta[i-1])/2/dxi)
 
+    # Boundary Points
+    delta_new[0] = delta_new[1]
+    delta_new[-1] = 0
+    
+    # Solve for b_new through integral condition using shooting method
+    err = 1
+    b_range = np.array((b, 1.5*b))
 
+    while err > 1e-6:
+        b_guess = np.mean(b_range)
+        V_new = trapezoidal_Integral(b_guess*xi, delta_new)
+
+        if V_new < V0:
+            b_range[0] = b_guess
+        else:
+            b_range[1] = b_guess
+
+        err = np.abs(V-V0)
+
+    b_new = b_guess
+
+    return delta_new, b_new
 
 
 ### Main Script
 
-# Initialize as a circular drop with radius b0
+# Initialize as a circular drop with radius b0 = 1
 b0 = 1
-r_max = 10
 delta = np.zeros((N))
-r = np.linspace(0, r_max, N)
+xi = np.linspace(0, 1, N) # xi = r/b
 for i in range(N):
-    if r[i] <= b0:
-        delta[i] = np.sqrt(b0**2 - r[i]**2)
-    else:
-        delta[i] = 0
+    delta[i] = np.sqrt(b0**2 - xi[i]**2)
+
+# Ensure BC's are met in initial condition
+xi[-1] = 0 #(delta = 0 at xi = 1)
+xi[1] = xi[0] # first derivative = 0 at BC (this is order 1 right now, may want to make better!)
 
 # Calculate Initial Volume
 p = 5
 (x_l,w) = leggauss(p) # Find Gauss Points of Degree p
-V0 = trapezoidal_Integral(r,delta)
-
-
+V0 = trapezoidal_Integral(b0*xi,delta)
 
 
 ## Run Time Stepping
-dt = 0.01
-t = np.arange(0, 1, dt)
+dt = 0.001
+t = np.arange(0, 0.1, dt)
 
 # Initialize Stored Values
-V = np.zeros(len(t))
+delta_history = np.zeros(len(t), N) # delta(t)
+delta_history[0,:] = delta[:] # Initial Condition
+V = np.zeros(len(t)) # Volume
+b = np.zeros(len(t)) # Radius
+b[0] = b0 # Initial Condition
 
-
-for i in range(len(t)):
-    # Calculate Volume
-    V[i] = trapezoidal_Integral(r,delta)
+for i in range(len(t)-1):
+    # Calculate Current Volume
+    V[i] = trapezoidal_Integral(b[i]*xi, delta_history[i,:])
 
     # Step
-    delta_new = delta_step(delta, r, dt)
+    delta_history[i+1,:], b[i+1] = delta_step(delta_history[i,:], b[i], dt, V0)
 
-    # Update delta
-    delta = delta_new
+
+## Plotting
+plt.figure()
