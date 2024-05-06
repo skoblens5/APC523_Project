@@ -48,15 +48,19 @@ def radial_gauss_legendre_integral(r, f_r, nodes, weights):
 @njit
 def simpsons_rule_radial(xi, delta):
     """Calculate the radial integral of `delta` over `xi` using Simpson's rule."""
-    h = (xi[-1] - xi[0]) / (len(xi) - 1)
-    integral = delta[0] * xi[0]**2 + delta[-1] * xi[-1]**2  # Considera el radio en los extremos
+    n = len(xi) - 1  # Número de intervalos, asegurarse que es par
+    if n % 2 == 1:
+        raise ValueError("Simpson's rule requires an even number of intervals (n+1 must be odd)")
+
+    h = (xi[-1] - xi[0]) / n
+    integral = delta[0] * xi[0]**2 + delta[-1] * xi[-1]**2  # Ponderación para los extremos
     
-    # Suma ponderada para los términos interiores
-    sum_even = np.sum(delta[2:-2:2] * xi[2:-2:2]**2)
-    sum_odd = np.sum(delta[1:-1:2] * xi[1:-1:2]**2)
+    # Sumas ponderadas para los términos interiores
+    sum_even = np.sum(delta[2:n:2] * xi[2:n:2]**2)  # Suma de términos con índices pares
+    sum_odd = np.sum(delta[1:n:2] * xi[1:n:2]**2)   # Suma de términos con índices impares
     
     integral += 2 * sum_even + 4 * sum_odd
-    integral *= h / 3 * np.pi  # np.pi factor para la integral sobre un círculo completo
+    integral *= h / 3 * np.pi  # Factor h/3 y pi para la integral radial
     
     return integral
     
