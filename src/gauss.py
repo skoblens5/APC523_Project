@@ -77,7 +77,7 @@ def simpsons_rule_radial(xi, delta):
     
     return integral
     
-    def plot_similarity_solution(xi, times, bs, deltas, V0):
+def plot_similarity_solution(xi, times, bs, deltas, V0):
     plt.figure(figsize=(10, 6))
     cmap = cm.viridis  # Choose a colormap
     norm = Normalize(vmin=min(times), vmax=max(times))  # Normalize times for color mapping
