@@ -7,9 +7,9 @@ This repository contains the source code and results for a computational fluid d
 
 APC523_Project/
 │
-├── src/ # Source files for simulation
-│ ├── drop_simulation.py # Primary simulation module for explicit method
-│ ├── drop_simulation2.py # Primary simulation module for implicit method
+├── src/ # Source files for simulation \\
+│ ├── drop_simulation.py # Primary simulation module for explicit method \\
+│ ├── drop_simulation2.py # Primary simulation module for implicit method \\
 │ ├── functions.py # Helper functions for mathematical operations
 │ ├── integrators.py # Integration schemes used in simulations
 │ ├── main.py # Basic setup and execution script
@@ -31,11 +31,11 @@ $$
 $$
 
 where:
-- $\delta(r, t) $ is the thickness of the drop,
-- $ r $ is the radial distance from the center,
-- $ \nu $ is the fluid's viscosity,
-- $ g $ is gravitational acceleration,
-- $ t $ is time.
+- $\delta(r, t)$ is the thickness of the drop,
+- $r$ is the radial distance from the center,
+- $\nu$ is the fluid's viscosity,
+- $g$ is gravitational acceleration,
+- $t$ is time.
 
 Boundary conditions and volume conservation laws are applied to ensure the physical accuracy of the simulation.
 
