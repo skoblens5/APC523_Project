@@ -26,16 +26,16 @@ APC523_Project/
 ## Simulation Details
 The simulation investigates the spreading of a viscous fluid drop on a surface by numerically solving the governing equation:
 
-\[
+$$
 \delta^3\left[\frac{\partial^2\delta}{\partial r^2} + \frac{1}{r}\frac{\partial\delta}{\partial r}\right] + 3\delta^2\left[\frac{\partial\delta}{\partial r}\right]^2 - 3\frac{\nu}{g}\frac{\partial\delta}{\partial t} = 0
-\]
+$$
 
 where:
-- \( \delta(r, t) \) is the thickness of the drop,
-- \( r \) is the radial distance from the center,
-- \( \nu \) is the fluid's viscosity,
-- \( g \) is gravitational acceleration,
-- \( t \) is time.
+- $\delta(r, t) $ is the thickness of the drop,
+- $ r $ is the radial distance from the center,
+- $ \nu $ is the fluid's viscosity,
+- $ g $ is gravitational acceleration,
+- $ t $ is time.
 
 Boundary conditions and volume conservation laws are applied to ensure the physical accuracy of the simulation.
 
