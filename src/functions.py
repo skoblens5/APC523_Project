@@ -37,6 +37,7 @@ def stability_study():
     plt.show()
 
 def plot_similarity_solution(xi, times, bs, deltas, V0):
+    C = 1
     plt.figure(figsize=(10, 6))
     cmap = cm.viridis  # Choose a colormap
     norm = Normalize(vmin=min(times), vmax=max(times))  # Normalize times for color mapping

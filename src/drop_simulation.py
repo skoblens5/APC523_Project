@@ -210,7 +210,7 @@ class DropSimulation:
         b_low = 0.5 * b
         b_high = 3 * b
         tolerance = 1E-6  # More strict tolerance
-        max_iterations = 100  # Prevents infinite loops
+        max_iterations = 50  # Prevents infinite loops
         iteration = 0
 
         while iteration < max_iterations:
@@ -258,6 +258,10 @@ class DropSimulation:
             bs.append(self.b)
             times.append(time_val)
             deltas.append(self.delta.copy())
+            
+            if self.method == 'implicit':
+                # Adaptive time stepping: increase dt by 10% if method is implicit
+                dt *= 1.1  # Increase the time step by 10%
             
             print(f"Time: {time_val}, Delta New: {delta_new[:5]}, V_new: {V_new}")
             time_val += dt
