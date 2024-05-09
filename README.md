@@ -3,25 +3,29 @@
 ## Overview
 This repository contains the source code and results for a computational fluid dynamics project focusing on the behavior of an axisymmetric viscous drop spreading under the influence of gravity. The project explores the dynamics using numerical solutions to solve non-linear partial differential equations with integral constraints and specific boundary conditions.
 
+
+```markdown
 ## Project Structure
 
+```
 APC523_Project/
 │
-├── src/ # Source files for simulation \\
-│ ├── drop_simulation.py # Primary simulation module for explicit method \\
-│ ├── drop_simulation2.py # Primary simulation module for implicit method \\
-│ ├── functions.py # Helper functions for mathematical operations
-│ ├── integrators.py # Integration schemes used in simulations
-│ ├── main.py # Basic setup and execution script
-│ ├── main_notebook.ipynb # Jupyter notebook with simulation experiments
-│ └── testing.ipynb # Testing and validation of methods
+├── src/                     # Source files for simulation
+│   ├── drop_simulation.py   # Primary simulation module for explicit method
+│   ├── drop_simulation2.py  # Primary simulation module for implicit method
+│   ├── functions.py         # Helper functions for mathematical operations
+│   ├── integrators.py       # Integration schemes used in simulations
+│   ├── main.py              # Basic setup and execution script
+│   ├── main_notebook.ipynb  # Jupyter notebook with simulation experiments
+│   └── testing.ipynb        # Testing and validation of methods
 │
-├── Figures/ # Graphical results from simulations
-│ ├── ProfileImplicit_1024.svg # High-resolution results for implicit method
-│ └── ProfileImplicit_32.svg # Low-resolution results for implicit method
+├── Figures/                 # Graphical results from simulations
+│   ├── ProfileImplicit_1024.svg # High-resolution results for implicit method
+│   └── ProfileImplicit_32.svg   # Low-resolution results for implicit method
 │
-└── README.md # This file
-
+└── README.md                # This file
+```
+```
 
 ## Simulation Details
 The simulation investigates the spreading of a viscous fluid drop on a surface by numerically solving the governing equation:
