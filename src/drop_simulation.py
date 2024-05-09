@@ -6,12 +6,11 @@ import sys
 from numpy.polynomial.legendre import leggauss
 from scipy.sparse import diags
 from scipy.sparse.linalg import bicgstab
-from numpy.linalg import norm
-from matplotlib import cm
 from matplotlib.colors import Normalize
-from functions import *
-from integrators import *
+#from functions import *
+#from integrators import *
 
+#IN THIS FILE I IMRPOVE VOLUME SHOOTING
 
 class DropSimulation:
     def __init__(self, N, DT, SIMULATION_TIME, method, integration_method):
@@ -28,7 +27,7 @@ class DropSimulation:
         self.NU = 1.0  # Viscosity
 
         self.initial_volume = self.calculate_initial_volume()
-
+        
     def calculate_initial_volume(self):
         if self.integration_method == 'gauss':
             nodes, weights = self.precompute_gauss_legendre()
@@ -39,6 +38,7 @@ class DropSimulation:
             return self.simpsons_rule_radial(self.xi * self.b, self.delta)
         else:
             raise ValueError("Unsupported integration method")
+    
     @staticmethod
     @njit
     def trapezoidal_integral(r, u):
@@ -85,10 +85,20 @@ class DropSimulation:
     def spectral_radius(self, A_reduced):
         eig_values = np.linalg.eigvals(A_reduced)
         return np.max(np.abs(eig_values))
-    
-    @staticmethod
-    @njit
+
     def step(self, delta, b, xi, dt):
+        """
+        Advances the simulation by one time step using the provided parameters.
+        
+        Args:
+        delta (np.array): Current heights of the fluid.
+        b (float): Base radius of the drop.
+        xi (np.array): Spatial discretization points.
+        dt (float): Time step.
+        
+        Returns:
+        np.array: New heights of the fluid after one time step.
+        """
         delta_new = np.zeros_like(delta)
         for i in range(1, self.N-1):
             r_factor = delta[i]**3 / b**2
@@ -99,7 +109,6 @@ class DropSimulation:
         delta_new[0] = delta_new[1]
         delta_new[-1] = 0
         return delta_new
-
     def create_matrix(self, u, radius, xi, dt):
         """
         Creates a matrix A for the given method ('explicit' or 'implicit') specified by self.method.
@@ -142,7 +151,7 @@ class DropSimulation:
         Out[0, 1] = -1
 
         return Out
-
+    
 
 
     def update_profile(self, delta, b, xi, dt):
@@ -157,8 +166,9 @@ class DropSimulation:
         
         Returns:
         np.array: Updated drop profile heights.
-        float: Possibly modified time step.
+        float: Modified time step (if changes during the update).
         """
+
         delta_new = np.zeros_like(delta)
         if self.method == 'explicit':
             A = self.create_matrix(delta, b, xi, dt)
@@ -170,35 +180,52 @@ class DropSimulation:
                 A_reduced = A[1:-2, 1:-2]
                 spectral_rad = self.spectral_radius(A_reduced)
             delta_new = self.step(delta, b, xi, dt)  # Update using explicit step
+            
         elif self.method == 'implicit':
+            #delta_new = delta
             RHS = np.zeros(self.N)
-            RHS[1:-1] = -delta[1:-1]  # Setup RHS for implicit method
+            RHS[1:-2] = -delta[1:-2]# Set up RHS for implicit method
+            delta_new = delta
+            err = 1
+            '''
             A = self.create_matrix(delta, b, xi, dt)
             delta_new = np.linalg.solve(A, RHS)  # Solve the linear system A*delta_new = RHS
+            '''
+            while err > 1E-10:
+                # solve for delta_new through matrix inversion
+                A = self.create_matrix(delta_new, b, xi, dt)
+                delta_new_2 = np.linalg.solve(A, RHS)
+                err = np.abs(np.max(delta_new_2 - delta_new))
+                delta_new = delta_new_2
         else:
             raise ValueError("Unsupported method specified. Choose 'explicit' or 'implicit'.")
 
         return delta_new, dt
-    
+        
     def volume_shooting(self, b, delta_new):
         """
         Adjusts the base radius 'b' to conserve the volume using the specified integration method.
+        Uses a more dynamic and precise method to adjust 'b' based on volume differences.
         """
-        b_range = np.array((0.5 * b, 3 * b))
-        err = 1
+        b_low = 0.5 * b
+        b_high = 3 * b
+        tolerance = 1E-6  # More strict tolerance
+        max_iterations = 100  # Prevents infinite loops
+        iteration = 0
 
-        while err > 1E-14:
-            b_guess = np.mean(b_range)
+        while iteration < max_iterations:
+            b_guess = (b_low + b_high) / 2
             V_new = self.calculate_volume(b_guess, delta_new)
 
-            if V_new > self.initial_volume:
-                b_range[1] = b_guess
-            elif V_new < self.initial_volume:
-                b_range[0] = b_guess
-            else:
-                break
+            if np.abs(V_new - self.initial_volume) < tolerance:
+                break  # Volume is conserved within tolerance
 
-            err = np.abs(V_new - self.initial_volume)
+            if V_new > self.initial_volume:
+                b_high = b_guess
+            else:
+                b_low = b_guess
+
+            iteration += 1
 
         return b_guess
 
@@ -211,8 +238,7 @@ class DropSimulation:
             return self.trapezoidal_integral(b * self.xi, delta)
         elif self.integration_method == 'simpson':
             return self.simpsons_rule_radial(b * self.xi, delta)
-        
-        
+    
     def run_simulation(self):
         volumes = [self.initial_volume]
         bs = [self.b]
@@ -233,7 +259,7 @@ class DropSimulation:
             times.append(time_val)
             deltas.append(self.delta.copy())
             
-            #print(f"Time: {time_val}, Delta New: {delta_new[:5]}, V_new: {V_new}")
+            print(f"Time: {time_val}, Delta New: {delta_new[:5]}, V_new: {V_new}")
             time_val += dt
 
         return {'xi': self.xi, 'times': times, 'bs': bs, 'volumes': volumes, 'deltas': deltas}
